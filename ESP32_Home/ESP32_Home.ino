@@ -5,7 +5,8 @@
 #define BIG_LED_PIN_GREEN 12
 int pinsBigLED[] = {BIG_LED_PIN_RED, BIG_LED_PIN_BLUE, BIG_LED_PIN_GREEN};
 // 0 - turned off, 1 - red, 2 - blue, 3 - green
-int ledState = 0;
+enum BigLedState {off, red, blue, green};
+BigLedState ledState = off;
 
 ////////////////////////////////////////////////
 #define MAX_CONNECTION_ATTEMPTS 30
@@ -96,25 +97,25 @@ void serveHTTPRequest() {
 
             client.print("<form action=\"\">");
             client.print("<a href=\"/OFF\"><input type=\"radio\" name=\"led\" value=\"off\"");
-            if (ledState == 0)
+            if (ledState == off)
             {
               client.print("checked=\"checked\"");
             }
             client.print("> Turned off<br></a>");
             client.print("<a href=\"/RED\"><input type=\"radio\" name=\"led\" value=\"red\"");
-            if (ledState == 1)
+            if (ledState == red)
             {
               client.print("checked=\"checked\"");
             }
             client.print("> Red<br></a>");
             client.print("<a href=\"/BLUE\"><input type=\"radio\" name=\"led\" value=\"blue\"");
-            if (ledState == 2)
+            if (ledState == blue)
             {
               client.print("checked=\"checked\"");
             }
             client.print("> Blue<br></a>");
             client.print("<a href=\"/GREEN\"><input type=\"radio\" name=\"led\" value=\"green\"");
-            if (ledState == 3)
+            if (ledState == green)
             {
               client.print("checked=\"checked\"");
             }
@@ -134,22 +135,22 @@ void serveHTTPRequest() {
 
         if (currentLine.endsWith("GET /OFF")) {
           resetBigLED();
-          ledState = 0;
+          ledState = off;
         }
         if (currentLine.endsWith("GET /RED")) {
           resetBigLED();
           digitalWrite(BIG_LED_PIN_RED, HIGH);
-          ledState = 1;
+          ledState = red;
         }
         if (currentLine.endsWith("GET /BLUE")) {
           resetBigLED();
           digitalWrite(BIG_LED_PIN_BLUE, HIGH);
-          ledState = 2;
+          ledState = blue;
         }
         if (currentLine.endsWith("GET /GREEN")) {
           resetBigLED();
           digitalWrite(BIG_LED_PIN_GREEN, HIGH);
-          ledState = 3;
+          ledState = green;
         }
       }
     }
