@@ -10,6 +10,7 @@ BigLedState ledState = off;
 
 ////////////////////////////////////////////////
 #define MAX_CONNECTION_ATTEMPTS 30
+#define REQUEST_TIMEOUT 5000
 
 const char* ssid     = "1a6808";
 const char* password = "278929194";
@@ -75,6 +76,7 @@ void serveHTTPRequest() {
   if (client) {                             // if you get a client,
     Serial.println("New Client.");           // print a message out the serial port
     String currentLine = "";                // make a String to hold incoming data from the client
+    unsigned long timeStarted = millis();
     while (client.connected()) {            // loop while the client's connected
       if (client.available()) {             // if there's bytes to read from the client,
         char c = client.read();             // read a byte, then
@@ -136,22 +138,22 @@ void serveHTTPRequest() {
         if (currentLine.endsWith("GET /OFF")) {
           resetBigLED();
           ledState = off;
-        }
-        if (currentLine.endsWith("GET /RED")) {
+        } else if (currentLine.endsWith("GET /RED")) {
           resetBigLED();
           digitalWrite(BIG_LED_PIN_RED, HIGH);
           ledState = red;
-        }
-        if (currentLine.endsWith("GET /BLUE")) {
+        } else if (currentLine.endsWith("GET /BLUE")) {
           resetBigLED();
           digitalWrite(BIG_LED_PIN_BLUE, HIGH);
           ledState = blue;
-        }
-        if (currentLine.endsWith("GET /GREEN")) {
+        } else if (currentLine.endsWith("GET /GREEN")) {
           resetBigLED();
           digitalWrite(BIG_LED_PIN_GREEN, HIGH);
           ledState = green;
         }
+      } else if (millis() - timeStarted > REQUEST_TIMEOUT) {
+        Serial.println("Connection with client timed out.");
+        break;
       }
     }
     
