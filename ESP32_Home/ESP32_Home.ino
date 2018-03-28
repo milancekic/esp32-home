@@ -17,9 +17,9 @@ BigLedState ledState = off;
 const char* ssid     = "1a6808";
 const char* password = "278929194";
 
-AsyncWebServer server(80);
-
 bool isConnectedToWiFi = false;
+
+AsyncWebServer server(80);
 ////////////////////////////////////////////////
 
 void setup() {
@@ -30,36 +30,13 @@ void setup() {
 
     isConnectedToWiFi = connectToNetwork();
     if (isConnectedToWiFi) {
-      server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
-          request->send(200, "text/html", getHomeHTML());
-      });
-      server.on("/OFF", HTTP_GET, [](AsyncWebServerRequest *request){
-          resetBigLED();
-          ledState = off;
-          request->send(200, "text/html", getHomeHTML());
-      });
-      server.on("/RED", HTTP_GET, [](AsyncWebServerRequest *request){
-          resetBigLED();
-          digitalWrite(BIG_LED_PIN_RED, HIGH);
-          ledState = red;
-          request->send(200, "text/html", getHomeHTML());
-      });
-      server.on("/BLUE", HTTP_GET, [](AsyncWebServerRequest *request){
-          resetBigLED();
-          digitalWrite(BIG_LED_PIN_BLUE, HIGH);
-          ledState = blue;
-          request->send(200, "text/html", getHomeHTML());
-      });
-      server.on("/GREEN", HTTP_GET, [](AsyncWebServerRequest *request){
-          resetBigLED();
-          digitalWrite(BIG_LED_PIN_GREEN, HIGH);
-          ledState = green;
-          request->send(200, "text/html", getHomeHTML());
-      });
-      
+      setupRoutes();
       // start server at port 80
       server.begin();
     }
+}
+
+void loop(){
 }
 
 bool connectToNetwork() {
@@ -95,37 +72,51 @@ bool connectToNetwork() {
     return isConnected;
 }
 
-void loop(){
+void setupRoutes() {
+  server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
+    request->send(200, "text/html", getHomeHTML());
+  });
+  server.on("/OFF", HTTP_POST, [](AsyncWebServerRequest *request){
+    resetBigLED();
+    ledState = off;
+    request->send(200, "text/html", getHomeHTML());
+  });
+  server.on("/RED", HTTP_POST, [](AsyncWebServerRequest *request){
+    resetBigLED();
+    digitalWrite(BIG_LED_PIN_RED, HIGH);
+    ledState = red;
+    request->send(200, "text/html", getHomeHTML());
+  });
+  server.on("/BLUE", HTTP_POST, [](AsyncWebServerRequest *request){
+    resetBigLED();
+    digitalWrite(BIG_LED_PIN_BLUE, HIGH);
+    ledState = blue;
+    request->send(200, "text/html", getHomeHTML());
+  });
+  server.on("/GREEN", HTTP_POST, [](AsyncWebServerRequest *request){
+    resetBigLED();
+    digitalWrite(BIG_LED_PIN_GREEN, HIGH);
+    ledState = green;
+    request->send(200, "text/html", getHomeHTML());
+  });
+
+  server.onNotFound([](AsyncWebServerRequest *request){
+    String html = "<html><head><style> form { display: inline; }</style></head><body><h2>This page does not exist.</h2></body>";
+    request->send(404, "text/html", html);
+  });
 }
 
 String getHomeHTML() {
-  String html = "";
-  html = html + "<form action=\"\">";
-  html = html + "<a href=\"/OFF\"><input type=\"radio\" name=\"led\" value=\"off\"";
-  if (ledState == off) {
-    html = html + "checked=\"checked\"";
-  }
-  html = html + "> Turned off<br></a>";
+  String html = "<html><head><style> form { display: inline; }</style> <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"></head><body>";
+  html = html + "<h2>Set LED state:</h2>";
+  html = html + "<p>";
+  html = html + "<form action = \"/OFF\" method = \"post\"><input type=\"submit\" name=\"offButton\" value=\"Turn Off\"/></form>";
+  html = html + "<form action = \"/RED\" method = \"post\"><input type=\"submit\" name=\"redButton\" value=\"Red\"/></form>";
+  html = html + "<form action = \"/BLUE\" method = \"post\"><input type=\"submit\" name=\"blueButton\" value=\"Blue\"/></form>";
+  html = html + "<form action = \"/GREEN\" method = \"post\"><input type=\"submit\" name=\"greenButton\" value=\"Green\"/></form>";
 
-  html = html + "<a href=\"/RED\"><input type=\"radio\" name=\"led\" value=\"red\"";
-  if (ledState == red) {
-    html = html + "checked=\"checked\"";
-  }
-  html = html + "> Red<br></a>";
-
-  html = html + "<a href=\"/BLUE\"><input type=\"radio\" name=\"led\" value=\"blue\"";
-  if (ledState == blue) {
-    html = html + "checked=\"checked\"";
-  }
-  html = html + "> Blue<br></a>";
-  
-  html = html + "<a href=\"/GREEN\"><input type=\"radio\" name=\"led\" value=\"green\"";
-  if (ledState == green) {
-    html = html + "checked=\"checked\"";
-  }
-  html = html + "> Green<br></a>";
-
-  html = html + "</form>";
+  html = html + "</p>";
+  html = html + "<p>Footer</p></body></html>";
   return html;
 }
 
